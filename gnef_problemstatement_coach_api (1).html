@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GNEF QI Problem Statement Coach</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap');
+
+  :root {
+    --green-deep: #1A4D3A;
+    --green-mid: #2E7D5E;
+    --green-light: #4CAF85;
+    --green-pale: #E8F5EF;
+    --green-mist: #F2FAF6;
+    --amber: #E8A838;
+    --amber-pale: #FEF6E4;
+    --red-soft: #C0392B;
+    --red-pale: #FDEDEB;
+    --ink: #1C2B23;
+    --ink-mid: #3D5247;
+    --ink-light: #6B8C7A;
+    --border: #C8DDD4;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--green-mist);
+    color: var(--ink);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  header {
+    background: var(--green-deep);
+    padding: 20px 32px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .logo-mark {
+    width: 44px; height: 44px;
+    background: var(--green-light);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px; color: white; flex-shrink: 0;
+  }
+  header h1 { font-family: 'DM Serif Display', serif; font-size: 20px; color: white; line-height: 1.2; }
+  header p { font-size: 13px; color: rgba(255,255,255,0.65); margin-top: 2px; }
+
+  .progress-bar { background: rgba(255,255,255,0.12); height: 4px; width: 100%; }
+  .progress-fill { height: 100%; background: var(--green-light); transition: width 0.5s ease; }
+
+  main { flex: 1; max-width: 700px; width: 100%; margin: 0 auto; padding: 32px 20px 60px; }
+
+  .step-card {
+    background: white; border-radius: 16px; border: 1px solid var(--border);
+    overflow: hidden; box-shadow: 0 2px 12px rgba(30,77,58,0.08); display: none;
+  }
+  .step-card.active { display: block; }
+
+  .step-header {
+    background: var(--green-deep); padding: 20px 28px;
+    display: flex; align-items: center; gap: 14px;
+  }
+  .step-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.2px; color: var(--green-light); }
+  .step-question { font-family: 'DM Serif Display', serif; font-size: 20px; color: white; line-height: 1.35; margin-top: 4px; }
+
+  .step-body { padding: 28px; }
+
+  .hint {
+    background: var(--green-pale); border-left: 3px solid var(--green-mid);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    padding: 12px 16px; font-size: 13.5px; color: var(--ink-mid); margin-bottom: 20px; line-height: 1.5;
+  }
+
+  .pill-grid { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+  .pill {
+    padding: 10px 18px; border-radius: 100px; border: 1.5px solid var(--border);
+    background: white; color: var(--ink-mid); font-family: 'DM Sans', sans-serif;
+    font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.18s;
+  }
+  .pill:hover { border-color: var(--green-mid); color: var(--green-deep); background: var(--green-pale); }
+  .pill.selected { border-color: var(--green-mid); background: var(--green-pale); color: var(--green-deep); font-weight: 600; }
+
+  input[type="text"], textarea {
+    width: 100%; border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+    padding: 12px 16px; font-family: 'DM Sans', sans-serif; font-size: 14.5px;
+    color: var(--ink); background: white; outline: none; transition: border-color 0.18s; resize: vertical;
+  }
+  input[type="text"]:focus, textarea:focus { border-color: var(--green-mid); }
+  textarea { min-height: 110px; line-height: 1.6; }
+
+  label.field-label {
+    display: block; font-size: 13px; font-weight: 600; color: var(--ink-mid);
+    margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.6px;
+  }
+  .field-group { margin-bottom: 18px; }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px;
+    border-radius: var(--radius-sm); font-family: 'DM Sans', sans-serif;
+    font-size: 15px; font-weight: 600; cursor: pointer; border: none; transition: all 0.18s;
+  }
+  .btn-primary { background: var(--green-mid); color: white; }
+  .btn-primary:hover { background: var(--green-deep); }
+  .btn-secondary { background: white; color: var(--ink-mid); border: 1.5px solid var(--border); }
+  .btn-secondary:hover { border-color: var(--green-mid); color: var(--green-deep); }
+  .btn-amber { background: var(--amber); color: white; }
+  .btn-amber:hover { background: #c98e2a; }
+
+  .step-footer { padding: 0 28px 28px; display: flex; gap: 10px; flex-wrap: wrap; }
+
+  /* INFO SUMMARY */
+  .info-summary {
+    background: var(--green-deep);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    margin-bottom: 20px;
+  }
+  .info-summary-title {
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1px; color: var(--green-light); margin-bottom: 12px;
+  }
+  .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .info-item { }
+  .info-item-label { font-size: 11px; color: rgba(255,255,255,0.5); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
+  .info-item-value { font-size: 13.5px; color: white; line-height: 1.4; }
+  .info-item.full { grid-column: 1 / -1; }
+
+  /* FORMULA BOX */
+  .formula-box {
+    background: var(--amber-pale);
+    border: 1.5px solid #F0CC80;
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    margin-bottom: 20px;
+  }
+  .formula-title { font-size: 13px; font-weight: 700; color: #7A5A10; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.6px; }
+  .formula-line { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 14px; }
+  .formula-chip {
+    padding: 5px 12px; border-radius: 100px; font-size: 12px; font-weight: 700;
+    letter-spacing: 0.3px; white-space: nowrap;
+  }
+  .formula-plus { color: #A0822A; font-weight: 700; font-size: 14px; }
+  .chip-who { background: #D4EDFF; color: #1A5A8A; }
+  .chip-what { background: #E8D4FF; color: #5A1A8A; }
+  .chip-number { background: #FFD4D4; color: #8A1A1A; }
+  .chip-compare { background: #D4FFE8; color: #1A6A3A; }
+  .chip-time { background: #FFF0D4; color: #8A5A10; }
+
+  .formula-divider { border: none; border-top: 1px solid #F0CC80; margin: 12px 0; }
+  .formula-eg-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #A0822A; display: block; margin-bottom: 6px; }
+  .formula-example { font-size: 13.5px; line-height: 1.7; color: var(--ink-mid); }
+  .formula-eg-who { font-weight: 700; color: #1A5A8A; }
+  .formula-eg-number { font-weight: 700; color: #8A1A1A; }
+  .formula-eg-time { font-weight: 700; color: #8A5A10; }
+  .formula-eg-compare { font-weight: 700; color: #1A6A3A; }
+
+  /* FEEDBACK */
+  .feedback-card { border-radius: var(--radius); padding: 20px; margin-bottom: 16px; }
+  .feedback-card.good { background: var(--green-pale); border: 1px solid #A8D4BC; }
+  .feedback-card.improve { background: var(--amber-pale); border: 1px solid #F0CC80; }
+  .feedback-card.error { background: var(--red-pale); border: 1px solid #E8B4AE; }
+
+  .feedback-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px; }
+  .feedback-card.good .feedback-title { color: var(--green-deep); }
+  .feedback-card.improve .feedback-title { color: #8B6514; }
+  .feedback-card.error .feedback-title { color: var(--red-soft); }
+
+  .criteria-row {
+    display: flex; align-items: flex-start; gap: 10px; padding: 8px 0;
+    border-bottom: 1px solid rgba(0,0,0,0.06); font-size: 14px; line-height: 1.5;
+  }
+  .criteria-row:last-child { border-bottom: none; }
+  .criteria-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+  .criteria-name { font-weight: 600; color: var(--ink); display: block; }
+  .criteria-note { color: var(--ink-mid); font-size: 13px; }
+
+  .summary-box { background: var(--green-deep); color: white; border-radius: var(--radius); padding: 20px 24px; margin-bottom: 20px; }
+  .summary-box h3 { font-family: 'DM Serif Display', serif; font-size: 17px; margin-bottom: 10px; color: var(--green-light); }
+  .summary-box p { font-size: 14px; line-height: 1.6; opacity: 0.9; }
+
+  /* SUCCESS */
+  .success-banner {
+    background: linear-gradient(135deg, var(--green-deep) 0%, var(--green-mid) 100%);
+    border-radius: 16px; padding: 32px 28px; color: white; text-align: center; margin-bottom: 20px;
+  }
+  .success-icon { font-size: 48px; margin-bottom: 12px; }
+  .success-banner h2 { font-family: 'DM Serif Display', serif; font-size: 26px; margin-bottom: 10px; }
+  .success-banner p { font-size: 15px; opacity: 0.88; line-height: 1.6; }
+
+  .final-statement {
+    background: white; border: 2px solid var(--green-light);
+    border-radius: var(--radius); padding: 20px 24px; margin-bottom: 20px;
+  }
+  .final-statement h3 { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--green-mid); margin-bottom: 10px; }
+  .final-statement p { font-size: 15.5px; line-height: 1.65; color: var(--ink); font-style: italic; }
+
+  /* SUCCESS INFO BREAKDOWN */
+  .success-breakdown {
+    background: white; border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 20px 24px; margin-bottom: 20px;
+  }
+  .success-breakdown h3 { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--ink-mid); margin-bottom: 14px; }
+  .breakdown-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .breakdown-item { }
+  .breakdown-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--ink-light); margin-bottom: 3px; }
+  .breakdown-value { font-size: 14px; color: var(--ink); line-height: 1.4; }
+  .breakdown-item.full { grid-column: 1 / -1; }
+
+  /* ANNOTATED STATEMENT */
+  .annotated-box {
+    background: var(--green-pale); border: 1px solid #A8D4BC;
+    border-radius: var(--radius); padding: 20px 24px; margin-bottom: 20px;
+  }
+  .annotated-box h3 { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--green-deep); margin-bottom: 14px; }
+  .annotated-legend { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--ink-mid); font-weight: 500; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+  .checklist { background: var(--green-pale); border-radius: var(--radius); padding: 16px 20px; margin-bottom: 20px; }
+  .checklist h3 { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--green-deep); margin-bottom: 12px; }
+  .check-item { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--ink-mid); padding: 5px 0; }
+  .check-item span:first-child { font-size: 16px; }
+
+  .loading { display: none; align-items: center; gap: 10px; color: var(--ink-light); font-size: 14px; padding: 12px 0; }
+  .loading.active { display: flex; }
+  .spinner { width: 18px; height: 18px; border: 2px solid var(--border); border-top-color: var(--green-mid); border-radius: 50%; animation: spin 0.7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  @media (max-width: 480px) {
+    header { padding: 16px 20px; }
+    .step-header { padding: 18px 20px; }
+    .step-body { padding: 20px; }
+    .step-footer { padding: 0 20px 20px; }
+    .step-question { font-size: 17px; }
+    .info-grid, .breakdown-grid { grid-template-columns: 1fr; }
+    .breakdown-item.full { grid-column: 1; }
+    .formula-line { gap: 4px; }
+    .formula-chip { font-size: 11px; padding: 4px 9px; }
+  }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+
+<header>
+  <div class="logo-mark">Q</div>
+  <div>
+    <h1>QI Problem Statement Coach</h1>
+    <p>GNEF Program · Quality Improvement</p>
+  </div>
+</header>
+<div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+
+<main>
+
+  <!-- STEP 1: ROLE -->
+  <div class="step-card active" id="step1">
+    <div class="step-header">
+      <div>
+        <div class="step-label">Step 1 of 6</div>
+        <div class="step-question">What is your role in the GNEF Program?</div>
+      </div>
+    </div>
+    <div class="step-body">
+      <div class="hint">👋 Welcome! This tool will guide you step by step to craft a strong, evidence-based problem statement for your QI project.</div>
+      <div class="pill-grid" id="rolePills">
+        <button class="pill" onclick="selectPill('role','Nursing',this)">🏥 Nursing</button>
+        <button class="pill" onclick="selectPill('role','M&amp;E',this)">📊 M&amp;E</button>
+        <button class="pill" onclick="selectPill('role','Supply Chain',this)">📦 Supply Chain</button>
+        <button class="pill" onclick="selectPill('role','Policy &amp; Advocacy',this)">📝 Policy &amp; Advocacy</button>
+        <button class="pill" onclick="selectPill('role','Other',this)">➕ Other</button>
+      </div>
+      <div class="field-group" id="roleOtherGroup" style="display:none">
+        <label class="field-label">Please specify your role</label>
+        <input type="text" id="roleOther" placeholder="e.g. Community Health Officer">
+      </div>
+    </div>
+    <div class="step-footer">
+      <button class="btn btn-primary" onclick="goStep(2)">Continue →</button>
+    </div>
+  </div>
+
+  <!-- STEP 2: FACILITY -->
+  <div class="step-card" id="step2">
+    <div class="step-header">
+      <div>
+        <div class="step-label">Step 2 of 6</div>
+        <div class="step-question">What facility or organization are you based at?</div>
+      </div>
+    </div>
+    <div class="step-body">
+      <div class="field-group">
+        <label class="field-label">Facility / Organization</label>
+        <input type="text" id="facility" placeholder="e.g. JJ Dossen Hospital, Maryland County, Liberia">
+      </div>
+    </div>
+    <div class="step-footer">
+      <button class="btn btn-secondary" onclick="goStep(1)">← Back</button>
+      <button class="btn btn-primary" onclick="goStep(3)">Continue →</button>
+    </div>
+  </div>
+
+  <!-- STEP 3: AREA -->
+  <div class="step-card" id="step3">
+    <div class="step-header">
+      <div>
+        <div class="step-label">Step 3 of 6</div>
+        <div class="step-question">What area of work does this problem relate to?</div>
+      </div>
+    </div>
+    <div class="step-body">
+      <div class="hint">💡 Examples: maternal health, infection prevention, data quality, HIV/TB, medication management, community outreach…</div>
+      <div class="field-group">
+        <label class="field-label">Area of Work</label>
+        <input type="text" id="area" placeholder="e.g. Maternal health, Data quality, Supply chain...">
+      </div>
+    </div>
+    <div class="step-footer">
+      <button class="btn btn-secondary" onclick="goStep(2)">← Back</button>
+      <button class="btn btn-primary" onclick="goStep(4)">Continue →</button>
+    </div>
+  </div>
+
+  <!-- STEP 4: GAP -->
+  <div class="step-card" id="step4">
+    <div class="step-header">
+      <div>
+        <div class="step-label">Step 4 of 6</div>
+        <div class="step-question">What gap or poor outcome have you observed — and for how long?</div>
+      </div>
+    </div>
+    <div class="step-body">
+      <div class="hint">⚠️ <strong>Describe the problem, not the solution.</strong> Avoid "We need more X" — instead describe what is happening or not happening. Include how long you've been noticing it.</div>
+      <div class="field-group">
+        <label class="field-label">Describe the problem</label>
+        <textarea id="gap" placeholder="e.g. Many mothers are missing their 6-week postnatal appointments. I've been noticing this for the past 3–4 months..."></textarea>
+      </div>
+    </div>
+    <div class="step-footer">
+      <button class="btn btn-secondary" onclick="goStep(3)">← Back</button>
+      <button class="btn btn-primary" onclick="goStep(5)">Continue →</button>
+    </div>
+  </div>
+
+  <!-- STEP 5: METRIC -->
+  <div class="step-card" id="step5">
+    <div class="step-header">
+      <div>
+        <div class="step-label">Step 5 of 6</div>
+        <div class="step-question">Do you have a number or metric — and what should it be compared against?</div>
+      </div>
+    </div>
+    <div class="step-body">
+      <div class="hint">📐 A strong problem statement needs a specific figure (e.g. 62%, 3 out of 10) AND a benchmark to compare it to (e.g. national target of 95%, WHO standard, last year's rate). If you don't have the exact number yet, use a placeholder like <strong>[X%]</strong>.</div>
+      <div class="field-group">
+        <label class="field-label">Your metric / current rate</label>
+        <input type="text" id="metric" placeholder="e.g. 65% of mothers attended — or use [X%] as placeholder">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Comparison point (benchmark / target / standard)</label>
+        <input type="text" id="benchmark" placeholder="e.g. Facility target of 95%, National standard of 80%">
+      </div>
+    </div>
+    <div class="step-footer">
+      <button class="btn btn-secondary" onclick="goStep(4)">← Back</button>
+      <button class="btn btn-primary" onclick="goStep(6)">Continue →</button>
+    </div>
+  </div>
+
+  <!-- STEP 6: DRAFT -->
+  <div class="step-card" id="step6">
+    <div class="step-header">
+      <div>
+        <div class="step-label">Step 6 of 6</div>
+        <div class="step-question">Now write your problem statement</div>
+      </div>
+    </div>
+    <div class="step-body">
+
+      <!-- YOUR INFO SUMMARY -->
+      <div class="info-summary" id="infoSummary"></div>
+
+      <!-- FORMULA -->
+      <div class="formula-box">
+        <div class="formula-title">📐 The Problem Statement Formula</div>
+        <div class="formula-line">
+          <span class="formula-chip chip-who">WHO / WHERE</span>
+          <span class="formula-plus">+</span>
+          <span class="formula-chip chip-what">WHAT (the gap)</span>
+          <span class="formula-plus">+</span>
+          <span class="formula-chip chip-number">NUMBER</span>
+          <span class="formula-plus">+</span>
+          <span class="formula-chip chip-time">TIME PERIOD</span>
+          <span class="formula-plus">+</span>
+          <span class="formula-chip chip-compare">vs. BENCHMARK</span>
+        </div>
+        <hr class="formula-divider">
+        <div class="formula-example">
+          <span class="formula-eg-label">Example</span>
+          <span class="formula-eg-who">At Greenfield Clinic,</span>
+          <span> only </span>
+          <span class="formula-eg-number">58% of ANC clients</span>
+          <span> completed four or more antenatal visits </span>
+          <span class="formula-eg-time">between January and March 2026,</span>
+          <span> compared to the </span>
+          <span class="formula-eg-compare">national standard of 80%.</span>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">Your problem statement</label>
+        <textarea id="draft" placeholder="Use the formula and your information above to write your statement here…" style="min-height:140px"></textarea>
+      </div>
+      <div class="loading" id="loadingIndicator">
+        <div class="spinner"></div>
+        <span>Evaluating your problem statement…</span>
+      </div>
+    </div>
+    <div class="step-footer">
+      <button class="btn btn-secondary" onclick="goStep(5)">← Back</button>
+      <button class="btn btn-amber" id="evaluateBtn" onclick="evaluateDraft()">✦ Evaluate my statement</button>
+    </div>
+  </div>
+
+  <!-- FEEDBACK CARD -->
+  <div class="step-card" id="stepFeedback">
+    <div class="step-header">
+      <div>
+        <div class="step-label">Feedback</div>
+        <div class="step-question">Here's how your statement measures up</div>
+      </div>
+    </div>
+    <div class="step-body" id="feedbackBody"></div>
+    <div class="step-footer" id="feedbackFooter"></div>
+  </div>
+
+  <!-- SUCCESS CARD -->
+  <div class="step-card" id="stepSuccess">
+    <div class="step-body">
+      <div class="success-banner">
+        <div class="success-icon">🎉</div>
+        <h2>Excellent work!</h2>
+        <p>You've crafted a strong, evidence-based problem statement that meets all four QI criteria. You're ready for the next step.</p>
+      </div>
+
+      <div class="final-statement">
+        <h3>Your Completed Problem Statement</h3>
+        <p id="finalStatementText"></p>
+      </div>
+
+      <div class="success-breakdown" id="successBreakdown"></div>
+
+      <div class="checklist">
+        <h3>All four criteria met ✅</h3>
+        <div class="check-item"><span>✅</span><span><strong>Current State</strong> — describes a gap or poor outcome, not a solution</span></div>
+        <div class="check-item"><span>✅</span><span><strong>Measurable</strong> — includes a concrete number or rate</span></div>
+        <div class="check-item"><span>✅</span><span><strong>Comparison Point</strong> — benchmarked against a target, standard, or average</span></div>
+        <div class="check-item"><span>✅</span><span><strong>Time-Bound</strong> — specifies the observation period</span></div>
+      </div>
+
+      <p style="font-size:14px; color:var(--ink-mid); line-height:1.6; margin-bottom:20px;">You can now use this problem statement to begin a <strong>root cause analysis</strong> — the next step in your QI project journey. Speak with your QI mentor or GNEF facilitator to continue!</p>
+    </div>
+    <div class="step-footer">
+      <button class="btn btn-amber" onclick="downloadPDF()">⬇ Download as PDF</button>
+      <button class="btn btn-primary" onclick="restart()">↺ Start a new problem statement</button>
+    </div>
+  </div>
+
+</main>
+
+<script>
+  const state = {
+    role: '', facility: '', area: '', gap: '',
+    metric: '', benchmark: '', draft: '', iteration: 0
+  };
+
+  const STEPS = 6;
+
+  function updateProgress(step) {
+    const pct = Math.round((step / (STEPS + 1)) * 100);
+    document.getElementById('progressFill').style.width = pct + '%';
+  }
+
+
+  function getApiKey() {
+    return "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";
+  }
+
+  function selectPill(key, value, el) {
+    document.querySelectorAll('#rolePills .pill').forEach(p => p.classList.remove('selected'));
+    el.classList.add('selected');
+    state[key] = value;
+    document.getElementById('roleOtherGroup').style.display = value === 'Other' ? 'block' : 'none';
+  }
+
+  function goStep(n) {
+    if (n === 2) {
+      if (!state.role) { alert('Please select your role before continuing.'); return; }
+      if (state.role === 'Other') {
+        const v = document.getElementById('roleOther').value.trim();
+        if (!v) { alert('Please specify your role.'); return; }
+        state.role = v;
+      }
+    }
+    if (n === 3) {
+      state.facility = document.getElementById('facility').value.trim();
+      if (!state.facility) { alert('Please enter your facility or organization.'); return; }
+    }
+    if (n === 4) {
+      state.area = document.getElementById('area').value.trim();
+      if (!state.area) { alert('Please describe your area of work.'); return; }
+    }
+    if (n === 5) {
+      state.gap = document.getElementById('gap').value.trim();
+      if (!state.gap) { alert('Please describe the gap or poor outcome you\'ve observed.'); return; }
+    }
+    if (n === 6) {
+      state.metric = document.getElementById('metric').value.trim();
+      state.benchmark = document.getElementById('benchmark').value.trim();
+      buildInfoSummary();
+    }
+
+    document.querySelectorAll('.step-card').forEach(c => c.classList.remove('active'));
+    const card = document.getElementById('step' + n);
+    if (card) { card.classList.add('active'); updateProgress(n); }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function buildInfoSummary() {
+    const rows = [
+      { label: 'Role', value: state.role, full: false },
+      { label: 'Facility / Organization', value: state.facility, full: false },
+      { label: 'Area of Work', value: state.area, full: false },
+      { label: 'Metric / Current Rate', value: state.metric || '—', full: false },
+      { label: 'Benchmark / Target', value: state.benchmark || '—', full: false },
+      { label: 'Observed Gap & Duration', value: state.gap, full: true }
+    ];
+    const el = document.getElementById('infoSummary');
+    el.innerHTML = `<div class="info-summary-title">📋 Your information — use this to write your statement</div>
+      <div class="info-grid">${rows.map(r => `
+        <div class="info-item${r.full ? ' full' : ''}">
+          <div class="info-item-label">${r.label}</div>
+          <div class="info-item-value">${r.value}</div>
+        </div>`).join('')}
+      </div>`;
+  }
+
+  function buildSuccessBreakdown() {
+    const el = document.getElementById('successBreakdown');
+    el.innerHTML = `<h3>📋 Your project context</h3>
+      <div class="breakdown-grid">
+        <div class="breakdown-item"><div class="breakdown-label">Role</div><div class="breakdown-value">${state.role}</div></div>
+        <div class="breakdown-item"><div class="breakdown-label">Facility</div><div class="breakdown-value">${state.facility}</div></div>
+        <div class="breakdown-item"><div class="breakdown-label">Area of Work</div><div class="breakdown-value">${state.area}</div></div>
+        <div class="breakdown-item"><div class="breakdown-label">Metric</div><div class="breakdown-value">${state.metric || '—'}</div></div>
+        <div class="breakdown-item"><div class="breakdown-label">Benchmark / Target</div><div class="breakdown-value">${state.benchmark || '—'}</div></div>
+        <div class="breakdown-item full"><div class="breakdown-label">Observed Gap</div><div class="breakdown-value">${state.gap}</div></div>
+      </div>`;
+  }
+
+  async function evaluateDraft() {
+    state.draft = document.getElementById('draft').value.trim();
+    if (!state.draft) { alert('Please write your problem statement before evaluating.'); return; }
+
+    document.getElementById('loadingIndicator').classList.add('active');
+    document.getElementById('evaluateBtn').disabled = true;
+    document.getElementById('evaluateBtn').style.opacity = '0.5';
+
+    const systemPrompt = `You are a QI coaching assistant for the GNEF Program. Evaluate problem statements against four criteria:
+1. CURRENT STATE — describes a gap or poor outcome, NOT a solution or intervention
+2. MEASURABLE — includes a concrete number, rate, or percentage (placeholders like [X%] count as partial credit — note they need to be filled in)
+3. COMPARISON POINT — includes a benchmark, standard, target, or average
+4. TIME-BOUND — specifies the period over which this was observed
+
+A "solution in disguise" (e.g. "We need more nurses") fails criterion 1.
+
+Respond ONLY in valid JSON with no markdown fences, no preamble, no trailing text. Use this exact schema:
+{
+  "criteria": {
+    "current_state": { "met": true, "comment": "short specific feedback" },
+    "measurable": { "met": true, "comment": "short specific feedback" },
+    "comparison_point": { "met": true, "comment": "short specific feedback" },
+    "time_bound": { "met": true, "comment": "short specific feedback" }
+  },
+  "all_met": true,
+  "encouragement": "one warm specific sentence on what they did well",
+  "main_gap": "if not all_met: the single most important thing to fix",
+  "suggested_revision": "if not all_met: a concrete improved version with [placeholders] for missing info",
+  "ready_message": "if all_met: a short congratulatory sentence"
+}`;
+
+    const userMsg = `Fellow context:
+- Role: ${state.role}
+- Facility: ${state.facility}
+- Area of work: ${state.area}
+- Observed gap: ${state.gap}
+- Metric/current rate: ${state.metric || 'not specified'}
+- Benchmark/comparison: ${state.benchmark || 'not specified'}
+- Draft iteration: ${state.iteration + 1}
+
+Problem statement draft:
+"${state.draft}"
+
+Evaluate strictly. Return only JSON.`;
+
+    try {
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true',
+          'x-api-key': getApiKey()
+        },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-6',
+          max_tokens: 1000,
+          system: systemPrompt,
+          messages: [{ role: 'user', content: userMsg }]
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.error) {
+        throw new Error(data.error.message || 'API error');
+      }
+
+      const raw = (data.content || []).map(b => b.text || '').join('');
+      const clean = raw.replace(/```json|```/g, '').trim();
+      const result = JSON.parse(clean);
+
+      state.iteration++;
+      renderFeedback(result);
+
+    } catch (err) {
+      console.error('Evaluation error:', err);
+      document.getElementById('loadingIndicator').classList.remove('active');
+      document.getElementById('evaluateBtn').disabled = false;
+      document.getElementById('evaluateBtn').style.opacity = '';
+      alert('Something went wrong evaluating your statement. Please check your internet connection and try again.\n\nError: ' + err.message);
+    }
+  }
+
+  function renderFeedback(result) {
+    document.getElementById('loadingIndicator').classList.remove('active');
+    document.getElementById('evaluateBtn').disabled = false;
+    document.getElementById('evaluateBtn').style.opacity = '';
+
+    if (result.all_met) {
+      document.getElementById('finalStatementText').textContent = state.draft;
+      buildSuccessBreakdown();
+      document.querySelectorAll('.step-card').forEach(c => c.classList.remove('active'));
+      document.getElementById('stepSuccess').classList.add('active');
+      updateProgress(STEPS + 1);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    const criteriaMap = {
+      current_state: 'Current State',
+      measurable: 'Measurable',
+      comparison_point: 'Comparison Point',
+      time_bound: 'Time-Bound'
+    };
+
+    const metRows = [], failRows = [];
+    for (const [key, val] of Object.entries(result.criteria)) {
+      const row = `<div class="criteria-row">
+        <span class="criteria-icon">${val.met ? '✅' : '❌'}</span>
+        <div><span class="criteria-name">${criteriaMap[key]}</span><span class="criteria-note">${val.comment}</span></div>
+      </div>`;
+      (val.met ? metRows : failRows).push(row);
+    }
+
+    let html = '';
+
+    if (result.encouragement || metRows.length) {
+      html += `<div class="feedback-card good">
+        <div class="feedback-title">👏 What you did well</div>
+        ${result.encouragement ? `<p style="font-size:14px;color:var(--ink-mid);line-height:1.6;margin-bottom:10px">${result.encouragement}</p>` : ''}
+        ${metRows.join('')}
+      </div>`;
+    }
+
+    if (failRows.length) {
+      html += `<div class="feedback-card improve">
+        <div class="feedback-title">🔧 What to strengthen</div>
+        ${failRows.join('')}
+      </div>`;
+    }
+
+    if (result.main_gap) {
+      html += `<div class="feedback-card error">
+        <div class="feedback-title">⚠️ Key focus for your next draft</div>
+        <p style="font-size:14px;color:var(--ink-mid);line-height:1.6">${result.main_gap}</p>
+      </div>`;
+    }
+
+    if (result.suggested_revision) {
+      html += `<div class="summary-box">
+        <h3>💡 Suggested revision</h3>
+        <p>"${result.suggested_revision}"</p>
+      </div>`;
+    }
+
+    html += `<p style="font-size:13px;color:var(--ink-light);margin-top:4px">Draft ${state.iteration} — you're getting closer! ✨</p>`;
+
+    document.getElementById('feedbackBody').innerHTML = html;
+    document.getElementById('feedbackFooter').innerHTML = `
+      <button class="btn btn-secondary" onclick="goStep(6)">← Revise my statement</button>
+      <button class="btn btn-primary" onclick="clearAndRevise()">Write a new draft →</button>
+    `;
+
+    document.querySelectorAll('.step-card').forEach(c => c.classList.remove('active'));
+    document.getElementById('stepFeedback').classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function clearAndRevise() {
+    document.getElementById('draft').value = '';
+    goStep(6);
+  }
+
+  function restart() {
+    Object.keys(state).forEach(k => state[k] = k === 'iteration' ? 0 : '');
+    ['facility','area','gap','metric','benchmark','draft','roleOther'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+    document.getElementById('roleOtherGroup').style.display = 'none';
+    document.querySelectorAll('.pill').forEach(p => p.classList.remove('selected'));
+    document.querySelectorAll('.step-card').forEach(c => c.classList.remove('active'));
+    document.getElementById('step1').classList.add('active');
+    updateProgress(0);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function downloadPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+
+    const pageW = doc.internal.pageSize.getWidth();
+    const pageH = doc.internal.pageSize.getHeight();
+    const margin = 20;
+    const contentW = pageW - margin * 2;
+    let y = 0;
+
+    // Helper: wrapped text block, returns new y
+    function addText(text, x, startY, opts) {
+      doc.setFont(opts.font || 'helvetica', opts.style || 'normal');
+      doc.setFontSize(opts.size || 11);
+      doc.setTextColor(...(opts.color || [28, 43, 35]));
+      const lines = doc.splitTextToSize(text, opts.maxW || contentW);
+      doc.text(lines, x, startY);
+      return startY + lines.length * (opts.lineH || (opts.size || 11) * 0.45);
+    }
+
+    // Helper: filled rect
+    function rect(x, ry, w, h, color) {
+      doc.setFillColor(...color);
+      doc.roundedRect(x, ry, w, h, 2, 2, 'F');
+    }
+
+    // ── HEADER ──
+    rect(0, 0, pageW, 28, [26, 77, 58]);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(16);
+    doc.setTextColor(255, 255, 255);
+    doc.text('GNEF Program · QI Problem Statement', margin, 12);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.setTextColor(180, 220, 200);
+    doc.text('Completed ' + new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }), margin, 20);
+    y = 38;
+
+    // ── COMPLETED STATEMENT ──
+    rect(margin, y, contentW, 6, [76, 175, 133]);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.setTextColor(255, 255, 255);
+    doc.text('COMPLETED PROBLEM STATEMENT', margin + 4, y + 4.2);
+    y += 10;
+
+    rect(margin, y, contentW, 30, [232, 245, 239]);
+    doc.setDrawColor(76, 175, 133);
+    doc.setLineWidth(0.8);
+    doc.line(margin, y, margin, y + 30);
+    const stmtLines = doc.splitTextToSize(state.draft, contentW - 12);
+    doc.setFont('helvetica', 'bolditalic');
+    doc.setFontSize(11);
+    doc.setTextColor(28, 43, 35);
+    doc.text(stmtLines, margin + 6, y + 7);
+    y += 36;
+
+    // ── CRITERIA MET ──
+    y += 4;
+    rect(margin, y, contentW, 6, [26, 77, 58]);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.setTextColor(255, 255, 255);
+    doc.text('ALL FOUR QI CRITERIA MET', margin + 4, y + 4.2);
+    y += 10;
+
+    const criteria = [
+      ['Current State', 'Describes a gap or poor outcome — not a solution or intervention'],
+      ['Measurable', 'Includes a concrete number, rate, or percentage'],
+      ['Comparison Point', 'Benchmarked against a target, standard, or average'],
+      ['Time-Bound', 'Specifies the period over which the problem was observed']
+    ];
+
+    criteria.forEach(([name, desc]) => {
+      rect(margin, y, contentW, 10, [242, 250, 246]);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(13);
+      doc.setTextColor(46, 125, 94);
+      doc.text('✓', margin + 3, y + 7);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(10);
+      doc.setTextColor(28, 43, 35);
+      doc.text(name, margin + 10, y + 4.5);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      doc.setTextColor(61, 82, 71);
+      doc.text(desc, margin + 10, y + 8.5);
+      y += 12;
+    });
+
+    // ── PROJECT CONTEXT ──
+    y += 4;
+    rect(margin, y, contentW, 6, [26, 77, 58]);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.setTextColor(255, 255, 255);
+    doc.text('PROJECT CONTEXT', margin + 4, y + 4.2);
+    y += 10;
+
+    const fields = [
+      ['Role', state.role],
+      ['Facility / Organization', state.facility],
+      ['Area of Work', state.area],
+      ['Metric / Current Rate', state.metric || '—'],
+      ['Benchmark / Target', state.benchmark || '—'],
+      ['Observed Gap & Duration', state.gap]
+    ];
+
+    fields.forEach(([label, value]) => {
+      const isLong = value.length > 80;
+      const blockH = isLong ? 18 : 10;
+      rect(margin, y, contentW, blockH, [242, 250, 246]);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(8);
+      doc.setTextColor(107, 140, 122);
+      doc.text(label.toUpperCase(), margin + 4, y + 4);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(10);
+      doc.setTextColor(28, 43, 35);
+      const valLines = doc.splitTextToSize(value, contentW - 8);
+      doc.text(valLines, margin + 4, y + 8);
+      y += blockH + 2;
+    });
+
+    // ── FOOTER ──
+    y = pageH - 18;
+    doc.setDrawColor(200, 221, 212);
+    doc.setLineWidth(0.4);
+    doc.line(margin, y, pageW - margin, y);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(107, 140, 122);
+    doc.text('GNEF Program · Quality Improvement Project · Problem Statement Certificate', margin, y + 6);
+    doc.text('Generated by QI Problem Statement Coach', pageW - margin, y + 6, { align: 'right' });
+
+    const filename = 'QI_Problem_Statement_' + (state.facility || 'GNEF').replace(/[^a-zA-Z0-9]/g, '_') + '.pdf';
+    doc.save(filename);
+  }
+
+</script>
+</body>
+</html>
